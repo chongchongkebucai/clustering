@@ -1,1 +1,1 @@
-add_library(clustering KMeans.cc)
+add_library(kmeans KMeans.cc)
