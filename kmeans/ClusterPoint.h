@@ -1,30 +1,25 @@
-#include "Point.h"
-
 #include <vector>
 
 namespace icts {
 
+template <typename T>
 class ClusterPoint {
 public:
     ClusterPoint() = default;
-    ClusterPoint(const Point<int> &point) : _point(point) {}
-    ClusterPoint(const Point<int> &point, int index) : _point(point), _index(index) {}
+    ClusterPoint(T *data, int index = 0) : _data(data), _index(index) {}
     ~ClusterPoint() = default;
 
     // getter
-    Point<int> get_point() const { return _point; }
-    int        get_index() const { return _index; }
-    int        get_count() const { return _count; }
+    T * get_data() const { return _data; }
+    int get_index() const { return _index; }
 
     // setter
-    void set_point(const Point<int> &point) { _point = point; }
+    void set_data(T *data) { _data = data; }
     void set_index(int index) { _index = index; }
-    void set_count(int count) { _count = count; }
 
 private:
-    Point<int> _point;
-    int        _index;
-    int        _count;
+    T * _data;
+    int _index;
 };
 
 } // namespace icts

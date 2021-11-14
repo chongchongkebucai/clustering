@@ -2,7 +2,8 @@
 
 namespace icts {
 
-template <typename T> class Point {
+template <typename T>
+class Point {
 public:
     Point() = default;
     Point(int x, int y) : _x(x), _y(y) {}
@@ -21,20 +22,25 @@ public:
     bool operator!=(const Point<T> &coord) const;
     bool operator<(const Point<T> &coord) const;
 
+    Point<int> get_location() const { return Point<int>(_x, _y); }
+
 private:
     T _x;
     T _y;
 };
 
-template <typename T> bool Point<T>::operator<(const Point<T> &coord) const {
+template <typename T>
+bool Point<T>::operator<(const Point<T> &coord) const {
     return _y < coord.get_y() || (_y == coord.get_y() && _x < coord.get_x());
 }
 
-template <typename T> bool Point<T>::operator==(const Point<T> &coord) const {
+template <typename T>
+bool Point<T>::operator==(const Point<T> &coord) const {
     return _x == coord.get_x() && _y == coord.get_y();
 }
 
-template <typename T> bool Point<T>::operator!=(const Point<T> &coord) const {
+template <typename T>
+bool Point<T>::operator!=(const Point<T> &coord) const {
     return _x != coord.get_x() || _y != coord.get_y();
 }
 

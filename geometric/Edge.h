@@ -1,26 +1,25 @@
-#include <Point.h>
-
 namespace icts {
+
+template <typename T>
 class Edge {
 public:
     Edge() = default;
-    Edge(const Point<int> &front, const Point<int> &back, int weight = 0)
-        : _front(front), _back(back), _weight(weight) {}
+    Edge(T *front, T *back, int weight = 0) : _front(front), _back(back), _weight(weight) {}
     ~Edge() = default;
 
     // setter
-    void set_front(const Point<int> &front) { _front = front; }
-    void set_back(const Point<int> &back) { _back = back; }
+    void set_front(T *front) { _front = front; }
+    void set_back(T *back) { _back = back; }
     void set_weight(int weight) { _weight = weight; }
 
     // getter
-    Point<int> get_front() const { return _front; }
-    Point<int> get_back() const { return _back; }
-    int        get_weight() const { return _weight; }
+    T * get_front() const { return _front; }
+    T * get_back() const { return _back; }
+    int get_weight() const { return _weight; }
 
 private:
-    Point<int> _front;
-    Point<int> _back;
-    int        _weight;
+    T * _front;
+    T * _back;
+    int _weight;
 };
 } // namespace icts

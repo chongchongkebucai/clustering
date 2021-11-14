@@ -14,5 +14,3 @@ include_directories(${PROJECT_SOURCE_DIR}/topology)
 add_compile_options(-Wall -Werror -O2 -g)
 
 add_subdirectory(test)
-add_subdirectory(kmeans)
-add_subdirectory(topology)
