@@ -67,6 +67,7 @@ TEST(kmeans, case2) {
     auto &                       clustering = KMeans<Point<int>>::get_instance();
     int                          cluster_num = 3;
     vector<vector<Point<int> *>> clusters = clustering.kmeans(points, cluster_num);
+    vector<vector<Point<int> *>> clusters2 = clustering.kmeans(points, cluster_num);
 
     // print result of clustering to file
     ofstream out("coordination.dot");

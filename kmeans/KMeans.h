@@ -47,7 +47,6 @@ KMeans<T> &KMeans<T>::get_instance() {
 
 template <typename T>
 vector<vector<T *>> KMeans<T>::kmeans(const std::vector<T *> &points, int k) {
-
     init(points, k);
 
     int  count = 1;
@@ -75,6 +74,8 @@ vector<vector<T *>> KMeans<T>::kmeans(const std::vector<T *> &points, int k) {
 
 template <typename T>
 void KMeans<T>::init(const std::vector<T *> &points, int k) {
+    _cluster_centers.clear();
+    _cluster_points.clear();
     int points_num = points.size();
     int cluster_size = points_num / k;
 
