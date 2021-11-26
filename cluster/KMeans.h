@@ -76,6 +76,7 @@ template <typename T>
 void KMeans<T>::init(const std::vector<T *> &points, int k) {
     _cluster_centers.clear();
     _cluster_points.clear();
+    
     int points_num = points.size();
     int cluster_size = points_num / k;
 
