@@ -1,10 +1,12 @@
 #pragma once
+
 #include <utility>
 #include <vector>
 
 using namespace std;
 namespace icts {
 
+// Binary tree node base part
 struct BTNodeBase {
     typedef BTNodeBase *base_ptr;
 
@@ -27,18 +29,70 @@ struct BTNodeBase {
     }
 };
 
-template <typename value>
+// Binary tree base iterator
+struct BTBaseIterator {
+    typedef BTNodeBase *base_ptr;
+
+    void increment() {
+        if (_node->_right != nullptr) {
+            _node = _node->_right;
+            while (_node->_left != nullptr) {
+                _node = _node->_left;
+            }
+        } else {
+            base_ptr y = _node->_parent;
+            while (_node == y->_right) {
+                _node = y;
+                y = y->_parent;
+            }
+            if (_node->_right != y) { // the right subtree is null of root node.
+                _node = y;
+            }
+        }
+    }
+
+    base_ptr _node;
+};
+
+// Binary tree node
+template <typename Value>
 struct BTNode : public BTNodeBase {
-    typedef value               value_type;
+    typedef Value               value_type;
     typedef BTNode<value_type> *link_type;
+
+    BTNode() = default;
+    BTNode(const value_type &value) : _value(value) {}
 
     value_type _value;
 };
 
-template <typename value>
+// Binary tree iterator
+template <typename Value>
+struct BTIterator : public BTBaseIterator {
+    typedef Value             value_type;
+    typedef value_type *      pointer;
+    typedef value_type &      reference;
+    typedef BTIterator<Value> iterator;
+    typedef BTNode<Value> *   link_type;
+
+    BTIterator() {}
+    BTIterator(link_type x) { _node = x; }
+    BTIterator(const iterator &iter) { _node = iter._node; }
+
+    reference operator*() const { return ((link_type)_node)->_value; }
+    pointer   operator->() const { return &(operator*()); }
+    iterator &operator++();
+    iterator  operator++(int);
+
+    bool operator==(const iterator &x) const { return _node == x._node; }
+    bool operator!=(const iterator &x) const { return _node != x._node; }
+};
+
+// Binary tree
+template <typename Value>
 class BinaryTree {
 protected:
-    typedef value       value_type;
+    typedef Value       value_type;
     typedef value_type *pointer;
     typedef value_type &reference;
 
@@ -47,7 +101,7 @@ protected:
     typedef BTNode<value_type> *link_type;
 
 public:
-    typedef BinaryTreeIterator<value_type> iterator;
+    typedef BTIterator<value_type> iterator;
 
     BinaryTree() : _node_count(0) { empty_init(); }
     BinaryTree(value_type root_value);
@@ -83,7 +137,7 @@ protected:
     link_type clone_node(link_type x);
 
     link_type &       root() const { return (link_type &)_header->_parent; }
-    link_type &       leftmost() const { return (link_type &)_header->left; }
+    link_type &       leftmost() const { return (link_type &)_header->_left; }
     link_type &       rightmost() const { return (link_type &)_header->_right; }
     static link_type &left(link_type x) { return (link_type &)x->_left; }
     static link_type &right(link_type x) { return (link_type &)x->_right; }
@@ -102,24 +156,39 @@ private:
     size_t    _node_count; // node number of binary tree
 };
 
-template <typename value>
-BinaryTree<value>::BinaryTree(value_type root_value) {
+// Binary tree iterator
+template <typename Value>
+BTIterator<Value> &BTIterator<Value>::operator++() {
+    increment();
+    return *this;
+}
+
+template <typename Value>
+BTIterator<Value> BTIterator<Value>::operator++(int) {
+    iterator tmp = *this;
+    increment();
+    return tmp;
+}
+
+// Binary tree part
+template <typename Value>
+BinaryTree<Value>::BinaryTree(value_type root_value) {
     empty_init();
     root() = create_node(root_value);
     leftmost() = root();
     rightmost() = _header;
 }
 
-template <typename value>
-inline void BinaryTree<value>::empty_init() {
+template <typename Value>
+inline void BinaryTree<Value>::empty_init() {
     _header = get_node();
     root() = nullptr;
     leftmost() = _header;
     rightmost() = _header;
 }
 
-template <typename value>
-void BinaryTree<value>::clear() {
+template <typename Value>
+void BinaryTree<Value>::clear() {
     if (_node_count != 0) {
         _erase(root());
         root() = nullptr;
@@ -129,34 +198,45 @@ void BinaryTree<value>::clear() {
     }
 }
 
-template <typename value>
-inline bool BinaryTree<value>::is_leaf(const iterator &iter) const {
+template <typename Value>
+inline bool BinaryTree<Value>::is_leaf(const iterator &iter) const {
     return iter->_left == nullptr && iter->_right == nullptr;
 }
 
-template <typename value>
-BinaryTree<value> *BinaryTree<value>::merge(value_type root_value, BinaryTree *left_subtree,
+template <typename Value>
+BinaryTree<Value> *BinaryTree<Value>::merge(value_type root_value, BinaryTree *left_subtree,
                                             BinaryTree *right_subtree) {
     // build a new tree
     BinaryTree *tree = new BinaryTree(root_value);
     link_type   root = tree->root();
-    _node_count = _node_count + left_subtree->size() + right_subtree->size();
+    tree->_node_count = tree->_node_count + left_subtree->size() + right_subtree->size();
 
     // connect two subtree to root
     left(root) = left_subtree->root();
-    parent(left_subtree->root()) = root;
+    if (left_subtree->root() != nullptr) {
+        parent(left_subtree->root()) = root;
+    }
     right(root) = right_subtree->root();
-    parent(right_subtree->root()) = root;
+    if (right_subtree->root() != nullptr) {
+        parent(right_subtree->root()) = root;
+    }
 
     // free subtree header node
-    put_node(left_subtree->_header);
-    put_node(right_subtree->_header);
+    left_subtree->put_node(left_subtree->_header);
+    right_subtree->put_node(right_subtree->_header);
 
     return tree;
 }
 
-template <typename value>
-void BinaryTree<value>::build_edges(link_type                             node,
+template <typename Value>
+vector<pair<Value, Value>> BinaryTree<Value>::get_edges() const {
+    vector<pair<value_type, value_type>> edges;
+    build_edges(root(), edges);
+    return edges;
+}
+
+template <typename Value>
+void BinaryTree<Value>::build_edges(link_type                             node,
                                     vector<pair<value_type, value_type>> &edges) const {
     if (node != nullptr) {
         // add edge if subtree is not null
@@ -173,8 +253,8 @@ void BinaryTree<value>::build_edges(link_type                             node,
     }
 }
 
-template <typename value>
-void BinaryTree<value>::_erase(link_type x) {
+template <typename Value>
+void BinaryTree<Value>::_erase(link_type x) {
     if (x != nullptr) {
         _erase(left(x));
         _erase(right(x));
@@ -182,8 +262,8 @@ void BinaryTree<value>::_erase(link_type x) {
     }
 }
 
-template <typename value>
-BinaryTree<value> &BinaryTree<value>::operator=(const BinaryTree &btree) {
+template <typename Value>
+BinaryTree<Value> &BinaryTree<Value>::operator=(const BinaryTree &btree) {
     if (this == &btree) {
         return *this;
     }
@@ -196,8 +276,8 @@ BinaryTree<value> &BinaryTree<value>::operator=(const BinaryTree &btree) {
     }
 }
 
-template <typename value>
-BinaryTree<value>::link_type BinaryTree<value>::_copy(link_type x, link_type parent) {
+template <typename Value>
+BinaryTree<Value>::link_type BinaryTree<Value>::_copy(link_type x, link_type parent) {
     link_type child_root = clone_node(x);
     child_root->_parent = parent;
 
@@ -221,14 +301,14 @@ BinaryTree<value>::link_type BinaryTree<value>::_copy(link_type x, link_type par
     return child_root;
 }
 
-template <typename value>
-void BinaryTree<value>::destroy_node(link_type p) {
-    p->~decltype (&p->_value)();
+template <typename Value>
+void BinaryTree<Value>::destroy_node(link_type p) {
+    // p->~decltype (&p->_value)();
     put_node(p);
 }
 
-template <typename value>
-BTNode<value> *BinaryTree<value>::clone_node(link_type x) {
+template <typename Value>
+BTNode<Value> *BinaryTree<Value>::clone_node(link_type x) {
     link_type tmp = create_node(x->_value);
     tmp->_left = nullptr;
     tmp->_right = nullptr;
